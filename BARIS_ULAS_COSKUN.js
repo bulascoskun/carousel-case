@@ -1,7 +1,4 @@
 (() => {
-  let totalItems = 0;
-  let itemsToShow = 5;
-
   const buildHTML = () => {
     const html = `
       <div class="container custom-container">
@@ -23,10 +20,12 @@
 
   const buildCSS = () => {
     const css = `
-    .custom-container {
+    
+.custom-container {
   padding-bottom: 50px;
 }
-    .title-container {
+
+.title-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,16 +45,19 @@
 }
 
 @media (max-width: 480px) {
-    .custom-title-primary {
-        font-size: 2.2rem;
-        line-height: 1.5;
-    }
+  .custom-title-primary {
+    font-size: 2.2rem;
+    line-height: 1.5;
+  }
 
-    .title-container {
-      padding: 0 22px 0 10px;
-      background-color: #fff;
-    }
+  .title-container {
+    padding: 0 22px 0 10px;
+    background-color: #fff;
+  }
 
+  .carousel-container {
+    box-shadow: none;
+  }
 }
 
 h1 {
@@ -76,6 +78,14 @@ h1 {
 .carousel-items {
   white-space: nowrap;
   overflow: hidden;
+  display: flex;
+  flex-wrap: nowrap;
+  scroll-behavior: smooth;
+}
+
+.carousel-items.dragging {
+  cursor: grab;
+  scroll-behavior: auto;
 }
 
 .carousel-button {
@@ -108,27 +118,42 @@ h1 {
   border: 1px solid #f28e00;
 }
 
-.product-item-wrapper {
-  display: inline-block;
-  padding-right: 20px;
-  transition: transform 0.3s ease;
-}
-
-.product-item {
+.custom-product-item {
+  display: block;
+  flex-shrink: 0;
   padding: 5px;
   color: #7d7d7d;
   border: 1px solid #ededed;
   border-radius: 10px;
   position: relative;
   background-color: #fff;
+  transition: transform 0.3s ease;
+  margin-right: 20px;
+  width: calc((100% / 2) - 8.5px);
 }
 
-.product-item-link {
+@media (min-width: 940px) {
+  .custom-product-item {
+    width: calc((100% / 3) - 12.5px);
+  }
+}
+@media (min-width: 1280px) {
+  .custom-product-item {
+    width: calc((100% / 4) - 14.2px);
+  }
+}
+@media (min-width: 1480px) {
+  .custom-product-item {
+    width: calc((100% / 5) - 15.5px);
+  }
+}
+
+.custom-product-item-link {
   text-decoration: none;
   color: #7d7d7d;
 }
 
-.product-item:hover {
+.custom-product-item:hover {
   box-shadow: 0 0 0 0 #00000030, inset 0 0 0 3px #f28e00;
 }
 
@@ -274,12 +299,12 @@ h1 {
   text-wrap: wrap;
 }
 
-.product-item-link {
+.custom-product-item-link {
   color: inherit;
   text-decoration: none;
 }
 
-.product-item-link:hover {
+.custom-product-item-link:hover {
   color: inherit;
 }
 
@@ -320,7 +345,8 @@ h1 {
   justify-content: center;
   margin-left: 0.5rem;
 }
-`;
+
+    `;
 
     const styleTag = document.createElement('style');
     styleTag.classList.add('carousel-style');
@@ -353,55 +379,28 @@ h1 {
     }
   };
 
-  const setItemWidth = () => {
+  const setCarouselEvents = () => {
     const carouselItems = document.querySelector('.carousel-items');
-    const wrappers = document.querySelectorAll('.product-item-wrapper') || [];
+    const firstItem = document.querySelector('.custom-product-item');
 
-    const itemsWidth = carouselItems?.offsetWidth || 0;
+    let isDragging = false;
+    let startX = 0;
+    let scrollStart = 0;
+    let scrollDiff = 0;
+    let hasDragged = false;
 
-    wrappers.forEach((wrapper) => {
-      wrapper.style.width = `${itemsWidth / itemsToShow}px`;
-    });
-  };
-
-  const setItemsToShow = () => {
-    const windowWidth = window.innerWidth;
-
-    if (windowWidth >= 1480) {
-      itemsToShow = 5;
-    } else if (windowWidth < 1480 && windowWidth >= 1280) {
-      itemsToShow = 4;
-    } else if (windowWidth < 1280 && windowWidth >= 940) {
-      itemsToShow = 3;
-    } else if (windowWidth < 940) {
-      itemsToShow = 2;
-    }
-  };
-
-  const setEvents = () => {
     //#region Prev / Next Carousel
-    let position = 0;
     const moveCarousel = (direction) => {
-      if (totalItems === 0) return;
+      const cardWidth = firstItem.clientWidth + 20 + 2;
+      const maxScroll = carouselItems.scrollWidth - carouselItems.clientWidth;
+      const scrollAmount = direction === 'next' ? cardWidth : -cardWidth;
 
-      if (direction === 'next') {
-        if (totalItems - itemsToShow <= position) return;
-        position++;
-      } else if (direction === 'prev') {
-        if (position === 0) return;
-        position--;
-      } else if (direction === 'reset') {
-        position = 0;
-      }
-
-      const items = document.querySelectorAll('.product-item-wrapper');
-      const itemWidth = items[0].offsetWidth;
-      const marginOffset = 2.5;
-      const translateValue = -1 * (position * (itemWidth + marginOffset));
-      items.forEach((item) => {
-        item.style.transform = `translateX(${translateValue}px)`;
-      });
+      carouselItems.scrollLeft = Math.min(
+        Math.max(carouselItems.scrollLeft + scrollAmount, 0),
+        maxScroll
+      );
     };
+
     document
       .getElementById('carousel-prev')
       ?.addEventListener('click', () => moveCarousel('prev'));
@@ -410,55 +409,117 @@ h1 {
       ?.addEventListener('click', () => moveCarousel('next'));
 
     addEventListener('resize', () => {
-      setItemsToShow();
-      setItemWidth();
-      moveCarousel('reset');
+      moveCarousel('prev');
     });
+    //#endregion
+
+    //#region Dragging Func.
+    const autoCenterImage = () => {
+      const cardWidth = firstItem.clientWidth + 22;
+      const offset = carouselItems.scrollLeft % cardWidth;
+      const maxScroll = carouselItems.scrollWidth - carouselItems.clientWidth;
+
+      if (
+        carouselItems.scrollLeft > 0 &&
+        carouselItems.scrollLeft < maxScroll
+      ) {
+        if (offset > cardWidth / 3) {
+          carouselItems.scrollLeft += cardWidth - offset;
+        } else {
+          carouselItems.scrollLeft -= offset;
+        }
+      }
+    };
+
+    const startDragging = (event) => {
+      isDragging = true;
+      hasDragged = false;
+      startX = event.pageX || event.touches[0].pageX;
+      scrollStart = carouselItems.scrollLeft;
+      carouselItems.classList.add('dragging');
+    };
+
+    const duringDrag = (event) => {
+      if (!isDragging) return;
+      hasDragged = true;
+
+      const currentX = event.pageX || event.touches[0].pageX;
+      scrollDiff = currentX - startX;
+
+      carouselItems.scrollLeft = scrollStart - scrollDiff;
+    };
+
+    const stopDragging = (e) => {
+      if (!isDragging) return;
+
+      isDragging = false;
+      carouselItems.classList.remove('dragging');
+
+      if (hasDragged) {
+        e.preventDefault();
+      }
+
+      if (Math.abs(scrollDiff) > 10) {
+        autoCenterImage();
+      }
+    };
+
+    carouselItems.addEventListener('click', (e) => {
+      if (hasDragged && e.target.closest('a')) {
+        e.preventDefault();
+      }
+    });
+
+    carouselItems.addEventListener('mousedown', startDragging);
+    carouselItems.addEventListener('touchstart', startDragging);
+
+    carouselItems.addEventListener('mousemove', duringDrag);
+    carouselItems.addEventListener('touchmove', duringDrag);
+
+    carouselItems.addEventListener('mouseup', stopDragging);
+    carouselItems.addEventListener('touchend', stopDragging);
     //#endregion
   };
 
   const handleFavoriteEvents = () => {
+    const handleFavorite = (event) => {
+      event.preventDefault();
+      const productId = event.currentTarget.dataset.productId;
+
+      const favoriteButton = document.querySelector(
+        `.heart[data-product-id="${productId}"]`
+      );
+      if (!favoriteButton) return;
+
+      const isCurrentlyFavorite = favoriteButton.classList.contains('favorite');
+      favoriteButton.classList.toggle('favorite', !isCurrentlyFavorite);
+
+      const productItems = localStorage.getItem('productItems');
+      const itemsArray = JSON.parse(productItems);
+
+      const updatedItems = itemsArray.map((item) => {
+        if (item.id === +productId) {
+          return {
+            ...item,
+            isFavorite: !item.isFavorite,
+          };
+        }
+        return item;
+      });
+
+      localStorage.setItem('productItems', JSON.stringify(updatedItems));
+    };
+
     const favoriteButtons = document.querySelectorAll('.heart');
+
     favoriteButtons.forEach((button) => {
       button.addEventListener('click', (e) => {
-        e.preventDefault();
-        const productId = e.currentTarget.dataset.productId;
-        handleFavorite(productId);
+        handleFavorite(e);
+      });
+      button.addEventListener('touchstart', (e) => {
+        handleFavorite(e);
       });
     });
-  };
-
-  const handleDragEvents = () => {
-    const carouselItems = document.querySelector('.carousel-items');
-
-    let isDragStart = false,
-      prevPagex,
-      prevScrollLeft;
-
-    const dragStart = (e) => {
-      isDragStart = true;
-      prevPagex = e.pageX || e.touches[0].pageX;
-      prevScrollLeft = carouselItems.scrollLeft;
-    };
-    const dragging = (e) => {
-      if (!isDragStart) return;
-      e.preventDefault();
-      let positionDiff = (e.pageX || e.touches[0].pageX) - prevPagex;
-      carouselItems.scrollLeft = prevScrollLeft - positionDiff;
-    };
-    const dragStop = (e) => {
-      isDragStart = false;
-    };
-
-    carouselItems.addEventListener('mousedown', dragStart);
-    carouselItems.addEventListener('touchstart', dragStart);
-
-    carouselItems.addEventListener('mousemove', dragging);
-    carouselItems.addEventListener('touchmove', dragging);
-
-    carouselItems.addEventListener('mouseup', dragStop);
-    carouselItems.addEventListener('mouseleave', dragStop);
-    carouselItems.addEventListener('touchend', dragStop);
   };
 
   const renderProducts = async () => {
@@ -479,17 +540,11 @@ h1 {
       itemsArray = JSON.parse(productItems);
     }
 
-    totalItems = itemsArray.length;
-
     const carouselItems = document.querySelector('.carousel-items');
 
     itemsArray.forEach((item) => {
       createProductItem(item, carouselItems);
     });
-
-    setItemWidth();
-    handleFavoriteEvents();
-    handleDragEvents();
   };
 
   const createProductItem = (item, container) => {
@@ -530,11 +585,10 @@ h1 {
     }
 
     const itemToAdd = `
-        <div class="product-item-wrapper" data-product-id="${id}">
-          <div class="product-item">
-            <a draggable="false" class="product-item-link" href="${url}" target="_blank">
+          <div class="custom-product-item data-product-id="${id}">
+            <a draggable="false" class="custom-product-item-link" href="${url}" target="_blank">
               <div class="item-image-container">
-                <img draggable="false" class="item-image" src="${img}" alt="${brand} - ${name}" />
+                <img class="item-image" src="${img}" alt="${brand} - ${name}" />
                 <button
                   data-product-id="${id}"
                   class="heart${isFavorite ? ' favorite' : ''}"
@@ -586,7 +640,6 @@ h1 {
               <button class="add-to-cart">Sepete Ekle</button>
             </div>
           </div>
-        </div>
       `;
 
     if (container) {
@@ -594,32 +647,7 @@ h1 {
     }
   };
 
-  const handleFavorite = (productId) => {
-    const favoriteButton = document.querySelector(
-      `.heart[data-product-id="${productId}"]`
-    );
-    if (!favoriteButton) return;
-
-    const isCurrentlyFavorite = favoriteButton.classList.contains('favorite');
-    favoriteButton.classList.toggle('favorite', !isCurrentlyFavorite);
-
-    const productItems = localStorage.getItem('productItems');
-    const itemsArray = JSON.parse(productItems);
-
-    const updatedItems = itemsArray.map((item) => {
-      if (item.id === +productId) {
-        return {
-          ...item,
-          isFavorite: !item.isFavorite,
-        };
-      }
-      return item;
-    });
-
-    localStorage.setItem('productItems', JSON.stringify(updatedItems));
-  };
-
-  const init = () => {
+  const init = async () => {
     const pathname = window.location.pathname;
     if (pathname !== '/') {
       console.log('Wrong Page!');
@@ -628,10 +656,9 @@ h1 {
 
     buildHTML();
     buildCSS();
-    setEvents();
-    setItemsToShow();
-    // Rendering
-    renderProducts();
+    await renderProducts();
+    handleFavoriteEvents();
+    setCarouselEvents();
   };
 
   init();
