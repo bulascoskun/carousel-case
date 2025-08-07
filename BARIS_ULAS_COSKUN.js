@@ -130,6 +130,8 @@ h1 {
   transition: transform 0.3s ease;
   margin-right: 20px;
   width: calc((100% / 2) - 8.5px);
+  font-family: Poppins, "cursive";
+  font-size: 12px;
 }
 
 @media (min-width: 940px) {
@@ -191,18 +193,18 @@ h1 {
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.37);
 }
 
-.heart .heart-icon {
+.heart .custom-heart-icon {
   display: block;
   width: 25px;
   height: 25px;
 }
 .heart .heart-add,
-.heart .favorite-heart-icon,
+.heart .favorite-custom-heart-icon,
 .heart .favorite-heart-add {
   display: none;
 }
 
-.heart:hover .heart-icon {
+.heart:hover .custom-heart-icon {
   display: none;
 }
 .heart:hover .heart-add {
@@ -211,17 +213,17 @@ h1 {
   height: 50px;
 }
 
-.heart.favorite .heart-icon,
+.heart.favorite .custom-heart-icon,
 .heart.favorite .heart-add {
   display: none;
 }
-.heart.favorite .favorite-heart-icon {
+.heart.favorite .favorite-custom-heart-icon {
   display: block;
   width: 50px;
   height: 50px;
 }
 
-.heart.favorite:hover .favorite-heart-icon {
+.heart.favorite:hover .favorite-custom-heart-icon {
   display: none;
 }
 .heart.favorite:hover .favorite-heart-add {
@@ -596,7 +598,7 @@ h1 {
                   <img
                     id="default-favorite"
                     src="https://www.e-bebek.com/assets/svg/default-favorite.svg"
-                    class="heart-icon"
+                    class="custom-heart-icon"
                   />
                   <img
                     src="https://www.e-bebek.com/assets/svg/default-hover-favorite.svg"
@@ -604,7 +606,7 @@ h1 {
                   />
                   <img
                     src="https://www.e-bebek.com/assets/svg/added-favorite.svg"
-                    class="favorite-heart-icon"
+                    class="favorite-custom-heart-icon"
                   />
                   <img
                     src="https://www.e-bebek.com/assets/svg/added-favorite-hover.svg"
